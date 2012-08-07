@@ -1,0 +1,34 @@
+{
+  "name": "backbone-relational-mapper",
+  "version": "0.0.0",
+  "description": "An ORM for Backbone-Relational.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emilecantin/backbone-relational-mapper.git"
+  },
+  "keywords": [
+    "backbone",
+    "orm",
+    "sql",
+    "postgres",
+    "pg"
+  ],
+  "author": "Emile cantin",
+  "license": "BSD",
+  "dependencies": {
+    "coffee-script": "~1.3.3",
+    "amd-loader": "0.0.4",
+    "backbone-relational": "~0.5.0"
+  },
+  "devDependencies": {
+    "sinon": "~1.4.2",
+    "sinon-chai": "~2.1.2",
+    "chai": "~1.2.0",
+    "mocha": "~1.3.2",
+    "glob": "~3.1.12"
+  }
+}
