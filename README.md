@@ -1,6 +1,11 @@
 Backbone-Relational-Mapper
 ==========================
 
+Important note
+--------------
+
+This module is absolutely not ready for any usage, as it is in _very_ early development. Pull requests are welcome, but be aware that everything may change very fast; your relevant pull request today may not be relevant tomorrow.
+
 Installation
 ------------
 
