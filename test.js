@@ -22,6 +22,10 @@ glob('test/**/*.coffee', function(err, files) {
   for (i = 0, len = files.length; i < len; i++) {
     mocha.addFile(files[i]);
   }
-  mocha.run();
+  mocha.run(function(failures){
+    if (!failures) {
+    }
+    process.exit();
+  });
 
 });
