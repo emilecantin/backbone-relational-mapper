@@ -4,6 +4,6 @@ node_js:
   - 0.6
 
 before_script:
-  - psql -c 'CREATE USER brm-test WITH PASSWORD "53cr3t p455w0rd";' -U postgres
-  - psql -c 'CREATE DATABASE brm-test WITH OWNER brm-test;' -U postgres
+  - psql -c 'CREATE USER "brm-test" WITH PASSWORD "53cr3t p455w0rd";' -U postgres
+  - psql -c 'CREATE DATABASE "brm-test" WITH OWNER "brm-test";' -U postgres
 
