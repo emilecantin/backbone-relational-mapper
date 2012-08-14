@@ -4,6 +4,6 @@ node_js:
   - 0.6
 
 before_script:
-  - psql -c "CREATE ROLE 'brm-test' LOGIN ENCRYPTED PASSWORD 'md5a56ab74bbeb3854e09ea4e7df8d07650' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;" -U postgres
-  - psql -c 'CREATE DATABASE "brm-test" WITH OWNER "brm-test";' -U postgres
+  - psql -c "CREATE ROLE brmtest LOGIN ENCRYPTED PASSWORD 'md5a56ab74bbeb3854e09ea4e7df8d07650' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;" -U postgres
+  - psql -c 'CREATE DATABASE brmtest WITH OWNER brmtest;' -U postgres
 

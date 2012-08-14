@@ -15,8 +15,8 @@ global.sinon = require('sinon');
 global.pgConfig = {
   dialect: 'postgres',
   host: 'localhost',
-  database: 'brm-test',
-  user: 'brm-test',
+  database: 'brmtest',
+  user: 'brmtest',
   password: '53cr3t p455w0rd'
 };
 
