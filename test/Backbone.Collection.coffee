@@ -7,6 +7,7 @@ define (require) ->
     before ->
       class @TestModel extends Backbone.RelationalModel
         fields:
+          id: Backbone.Types.Primary
           strField: Backbone.Types.String
       TestModel = @TestModel
 
@@ -21,6 +22,7 @@ define (require) ->
 
       it 'should generate a SELECT statement', (done) ->
         collection = new @TestCollection
-        collection.bind 'reset', done
+        collection.bind 'reset', ->
+          expect(collection.length).to.be.above 1
+          done()
         collection.fetch()
-        done()

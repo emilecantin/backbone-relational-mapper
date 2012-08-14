@@ -4,6 +4,11 @@ node_js:
   - 0.6
 
 before_script:
+  # Create the user
   - psql -c "CREATE ROLE brmtest LOGIN ENCRYPTED PASSWORD 'md5a56ab74bbeb3854e09ea4e7df8d07650' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;" -U postgres
+  # Create the database
   - psql -c 'CREATE DATABASE brmtest WITH OWNER brmtest;' -U postgres
-
+  # Setup test tables
+  - psql -c 'CREATE TABLE test_models ( id serial NOT NULL, "strField" character varying(255), CONSTRAINT "primary" PRIMARY KEY (id )) WITH ( OIDS=FALSE); ALTER TABLE test_models OWNER TO brmtest;' -U postgres
+  - psql -c 'INSERT INTO test_models ("strField") VALUES ("TEST");' -U postgres
+  - psql -c 'INSERT INTO test_models ("strField") VALUES ("TEST2");' -U postgres
