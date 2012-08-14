@@ -1,5 +1,6 @@
 require('coffee-script');
 require('amd-loader');
+async = require('async');
 // Setup Mocha
 var Mocha = require('mocha');
 var mocha = new Mocha({
@@ -19,6 +20,14 @@ global.pgConfig = {
   user: 'brmtest',
   password: '53cr3t p455w0rd'
 };
+
+// Setup the database tables
+pg = require('pg');
+client = new pg.Client(pgConfig);
+client.query('DROP TABLE IF EXISTS test_models');
+client.query('CREATE TABLE test_models (id serial NOT NULL, "strField" character varying(255), CONSTRAINT "primary" PRIMARY KEY (id));');
+client.query("INSERT INTO test_models(\"strField\") VALUES ('TEST');");
+client.query("INSERT INTO test_models(\"strField\") VALUES ('TEST2');");
 
 
 // Find all test files, and run the tests

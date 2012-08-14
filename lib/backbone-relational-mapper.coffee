@@ -46,7 +46,6 @@ define (require) ->
         when 'read'
           Backbone.DB.getConnection (err, client) ->
             sql = "SELECT #{fields} FROM #{tablename}"
-            console.log sql
             query = client.query sql
             query.on 'row', (row) ->
               collection.add row if collection?
