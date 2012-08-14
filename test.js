@@ -11,6 +11,15 @@ var chai = require('chai');
 chai.use(require('sinon-chai'));
 global.expect = chai.expect;
 global.sinon = require('sinon');
+// Add postgres connection details
+global.pgConfig = {
+  dialect: 'postgres',
+  host: 'localhost',
+  database: 'brm-test',
+  user: 'brm-test',
+  password: '53cr3t p455w0rd'
+};
+
 
 // Find all test files, and run the tests
 var glob = require('glob');

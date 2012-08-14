@@ -27,6 +27,21 @@ define (require) ->
 
 
     Backbone.sync = (method, model, options) ->
-      test = 'test'
+      if model instanceof Backbone.Collection
+        collection = model
+        ModelClass = collection.model
+      else
+        ModelClass = model.constructor
+      switch method
+        when 'read'
+          Backbone.DB.getConnection (err, client) ->
+            fields = key for key of ModelClass::fields
+            #client.query "SELECT "
+
+    Backbone.Types =
+      String: 'STRING'
+      Text: 'TEXT'
+      Integer: 'INTEGER'
+      Float: 'FLOAT'
 
   return Backbone
