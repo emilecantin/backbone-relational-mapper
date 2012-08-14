@@ -2,7 +2,7 @@ define (require) ->
 
   Backbone = require '../lib/backbone-relational-mapper'
 
-  describe 'Backbone.Collection', ->
+  describe 'Backbone.RelationalModel', ->
 
     before ->
       class @TestModel extends Backbone.RelationalModel
@@ -18,19 +18,19 @@ define (require) ->
       Backbone.DB.connect pgConfig
       done()
 
-    describe 'fetch()', ->
+    describe 'save()', ->
 
-      it 'should generate a "add" event for each row', (done) ->
-        collection = new @TestCollection
-        collection.bind 'add', (model) ->
-          expect(model.get "strField").to.be.a 'string'
-        collection.bind 'reset', ->
-          done()
-        collection.fetch()
-
-      it 'should generate a "reset" event', (done) ->
+      it 'should save a new model', (done) ->
         collection = new @TestCollection
         collection.bind 'reset', ->
-          expect(collection.length).to.be.above 1
-          done()
+          nbModels = collection.length
+          model = new @TestModel
+            strField: 'TestModel'
+          model.save()
+          collection2 = new @TestCollection
+          collection2.bind 'reset', ->
+            expect(collection2.length).to.be.above nbModels
+            done()
+            #collection2.fetch()
+        debugger
         collection.fetch()
