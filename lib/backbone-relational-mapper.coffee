@@ -36,7 +36,7 @@ define (require) ->
         when 'read'
           Backbone.DB.getConnection (err, client) ->
             fields = key for key of ModelClass::fields
-            #client.query "SELECT "
+            client.query "SELECT "
 
     Backbone.Types =
       String: 'STRING'

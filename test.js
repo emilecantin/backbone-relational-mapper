@@ -33,8 +33,11 @@ glob('test/**/*.coffee', function(err, files) {
   }
   mocha.run(function(failures){
     if (!failures) {
+      process.exit();
     }
-    process.exit();
+    else {
+      process.exit(1);
+    }
   });
 
 });
