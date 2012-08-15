@@ -22,15 +22,15 @@ define (require) ->
 
       it 'should generate a "add" event for each row', (done) ->
         collection = new @TestCollection
-        collection.bind 'add', (model) ->
+        collection.on 'add', (model) ->
           expect(model.get "strField").to.be.a 'string'
-        collection.bind 'reset', ->
+        collection.on 'reset', ->
           done()
         collection.fetch()
 
       it 'should generate a "reset" event', (done) ->
         collection = new @TestCollection
-        collection.bind 'reset', ->
+        collection.on 'reset', ->
           expect(collection.length).to.be.above 1
           done()
         collection.fetch()

@@ -38,11 +38,27 @@ define (require) ->
 
       # Get useful data from the model's class
       fields = []
-      fields.push "\"#{key}\"" for key of ModelClass::fields
+      for name, definition of ModelClass::fields
+        type = definition.type || definition
+        fields.push "\"#{name}\""
       tablename = inflection.tableize ModelClass.name
 
       # Do the right thing according to the method
       switch method
+        when 'create'
+          Backbone.DB.getConnection (err, client) ->
+            # Remove the 'id' attribute
+            indexOfId = fields.indexOf 'id'
+            fields = fields.splice indexOfId
+            placeholders = []
+            placeholders.push "$#{i}" for i in [1..fields.length]
+            sql = "INSERT INTO #{tablename}(#{fields}) VALUES (#{placeholders})"
+            values = []
+            for field of ModelClass::fields
+              values.push model.get field unless field == 'id'
+            query = client.query sql, values
+            query.on 'end', ->
+              model.trigger 'sync'
         when 'read'
           Backbone.DB.getConnection (err, client) ->
             sql = "SELECT #{fields} FROM #{tablename}"
@@ -51,6 +67,16 @@ define (require) ->
               collection.add row if collection?
             query.on 'end', ->
               collection.trigger 'reset' if collection?
+        when 'update'
+          Backbone.DB.getConnection (err, client) ->
+            indexOfId = fields.indexOf 'id'
+            fields = fields.splice indexOfId
+            placeholders = []
+            placeholders.push "#{fields[i]}=$#{i}" for i in [1..fields.length]
+            sql = "UPDATE #{tablename} SET #{placeholders}"
+            console.log sql
+        else
+          throw new Error "Unsupported method: #{method}"
 
     Backbone.Types =
       String: 'STRING'
