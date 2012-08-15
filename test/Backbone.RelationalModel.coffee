@@ -37,18 +37,37 @@ define (require) ->
               expect(collection2.length).to.be.above nbModels
               done()
 
-#      it 'should save an existing model', (done) ->
-#        TestCollection = @TestCollection
-#        TestModel = @TestModel
-#        collection = new TestCollection
-#        collection.on 'reset', ->
-#          model = collection.last()
-#          model.set strField: 'NewValue'
-#          model.save()
-#          model.on 'sync', ->
-#            collection2 = new TestCollection
-#            collection2.fetch()
-#            collection2.on 'reset', ->
-#              model2 = collection2.last()
-#              expect(model2.get 'strField').to.equal 'NewValue'
-#              done()
+      it 'should save an existing model', (done) ->
+        TestCollection = @TestCollection
+        TestModel = @TestModel
+        collection = new TestCollection
+        collection.fetch()
+        collection.on 'reset', ->
+          model = collection.last()
+          model.set strField: 'NewValue'
+          model.save()
+          model.on 'sync', ->
+            collection2 = new TestCollection
+            collection2.fetch()
+            collection2.on 'reset', ->
+              model2 = collection2.last()
+              expect(model2.get 'strField').to.equal 'NewValue'
+              done()
+
+    describe 'destroy()', ->
+
+      it 'should delete the model', (done) ->
+        TestCollection = @TestCollection
+        TestModel = @TestModel
+        collection = new TestCollection
+        collection.fetch()
+        collection.on 'reset', ->
+          nbModels = collection.length
+          model = collection.first()
+          model.destroy()
+          model.on 'sync', ->
+            collection2 = new TestCollection
+            collection2.fetch()
+            collection2.on 'reset', ->
+              expect(collection2.length).to.be.below nbModels
+              done()

@@ -72,9 +72,21 @@ define (require) ->
             indexOfId = fields.indexOf 'id'
             fields = fields.splice indexOfId
             placeholders = []
-            placeholders.push "#{fields[i]}=$#{i}" for i in [1..fields.length]
-            sql = "UPDATE #{tablename} SET #{placeholders}"
-            console.log sql
+            placeholders.push "#{fields[i]}=$#{i+1}" for i in [0..fields.length-1]
+            sql = "UPDATE #{tablename} SET #{placeholders} WHERE id=$#{i+1}"
+            values = []
+            for field of ModelClass::fields
+              values.push model.get field unless field == 'id'
+            values.push model.get 'id'
+            query = client.query sql, values
+            query.on 'end', ->
+              model.trigger 'sync'
+        when 'delete'
+          Backbone.DB.getConnection (err, client) ->
+            sql = "DELETE FROM #{tablename} WHERE id=$1"
+            query = client.query sql, [model.get 'id']
+            query.on 'end', ->
+              model.trigger 'sync'
         else
           throw new Error "Unsupported method: #{method}"
 
