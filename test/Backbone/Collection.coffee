@@ -1,6 +1,6 @@
 define (require) ->
 
-  Backbone = require '../lib/backbone-relational-mapper'
+  Backbone = require '../../lib'
 
   describe 'Backbone.Collection', ->
 

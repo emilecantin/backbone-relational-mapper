@@ -1,6 +1,6 @@
 define (require) ->
 
-  Backbone = require '../lib/backbone-relational-mapper'
+  Backbone = require '../../../lib'
 
   describe 'Backbone.DB.connect', ->
 
@@ -28,7 +28,7 @@ define (require) ->
             client.query("SELECT 'hello'", done)
 
         it 'should persist across calls to require', (done) ->
-          OtherBackbone = require '../lib/backbone-relational-mapper'
+          OtherBackbone = require '../../../lib'
           OtherBackbone.DB.getConnection (err, client) ->
             done err if err
             client.query("SELECT 'hello'", done)
