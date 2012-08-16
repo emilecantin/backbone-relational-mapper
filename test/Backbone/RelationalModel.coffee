@@ -39,6 +39,21 @@ define (require) ->
                 expect(collection2.length).to.be.above nbModels
                 done()
 
+        it 'should set a new model\'s id', (done) ->
+          TestModel = @TestModel
+          model = new TestModel
+            strField: 'TestModel With ID'
+          model.save()
+          model.on 'error', done
+          model.on 'sync', ->
+            expect(model.get 'id').to.not.equal undefined
+            model2 = new TestModel id: model.get 'id'
+            model2.fetch()
+            model2.on 'error', done
+            model2.on 'sync', ->
+              expect(model.get 'strField').to.equal model2.get 'strField'
+              done()
+
         it 'should save an existing model', (done) ->
           TestModel = @TestModel
           model = new TestModel id: 2

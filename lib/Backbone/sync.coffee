@@ -86,13 +86,15 @@ define (require) ->
             fields.push "\"updatedAt\""
             placeholders.push "$#{++placeholderIndex}"
             values.push new Date()
-            sql = "INSERT INTO #{data.tablename}(#{fields}) VALUES (#{placeholders})"
+            sql = "INSERT INTO #{data.tablename}(#{fields}) VALUES (#{placeholders}) RETURNING *"
             log sql, values
-            query = client.query sql, values
-            query.on 'error', (err) ->
-              model.trigger 'error', err
-            query.on 'end', ->
-              model.trigger 'sync'
+            query = client.query sql, values, (err, result) ->
+              if err
+                model.trigger 'error', err
+              else
+                model.set result.rows[0]
+                model.trigger 'sync'
+
         when 'read'
           Backbone.DB.getConnection (err, client) ->
             data = getTableData ModelClass, excludeId: false
@@ -100,18 +102,18 @@ define (require) ->
             sql = "SELECT * FROM #{data.tablename} WHERE id=$#{++placeholderIndex} LIMIT 1"
             values.push model.get 'id'
             log sql, values
-            query = client.query sql, values
-            query.on 'error', (err) ->
-              model.trigger 'error', err
-            query.on 'row', (row) ->
-              model.set row
-            query.on 'end', (result) ->
-              if result.rowCount == 0
-                model.trigger 'error', 'Not found'
-              else if result.rowCount == 1
-                model.trigger 'sync'
+            query = client.query sql, values, (err, result) ->
+              if err
+                model.trigger 'error', err
               else
-                model.trigger 'error', 'Too many results'
+                if result.rowCount == 0
+                  model.trigger 'error', 'Not found'
+                else if result.rowCount == 1
+                  model.set result.rows[0]
+                  model.trigger 'sync'
+                else
+                  model.trigger 'error', 'Too many results'
+
         when 'update'
           Backbone.DB.getConnection (err, client) ->
             data = getTableData ModelClass, excludeId: true
@@ -122,26 +124,26 @@ define (require) ->
                 values.push model.get field
             placeholders.push "\"updatedAt\"=$#{++placeholderIndex}"
             values.push new Date
-            sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{++placeholderIndex}"
+            sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{++placeholderIndex} RETURNING *"
             values.push model.get 'id'
             log sql, values
-            console.log sql
-            console.log values
-            query = client.query sql, values
-            query.on 'error', (err) ->
-              model.trigger 'error', err
-            query.on 'end', ->
-              model.trigger 'sync'
+            query = client.query sql, values, (err, result) ->
+              if err
+                model.trigger 'error', err
+              else
+                model.set result.rows[0]
+                model.trigger 'sync'
+
         when 'delete'
           data = getTableData ModelClass, excludeId: false
           Backbone.DB.getConnection (err, client) ->
             sql = "DELETE FROM #{data.tablename} WHERE id=$#{++placeholderIndex}"
             values.push model.get 'id'
             log sql, values
-            query = client.query sql, values
-            query.on 'error', (err) ->
-              model.trigger 'error', err
-            query.on 'end', ->
-              model.trigger 'sync'
+            query = client.query sql, values, (err, result) ->
+              if err
+                model.trigger 'error', err
+              else
+                model.trigger 'sync'
         else
           throw new Error "Unsupported method: #{method}"
