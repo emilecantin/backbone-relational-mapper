@@ -15,6 +15,11 @@ define (require) ->
         fields: fields
       }
 
+  log = (sql, values) ->
+    if Backbone.DB.logger? and typeof Backbone.DB.logger is 'function'
+      Backbone.DB.logger sql
+      Backbone.DB.logger values
+
   sync = (method, model, options={}) ->
 
     # Check which type of object we got
@@ -42,9 +47,12 @@ define (require) ->
               placeholders.push "$#{++placeholderIndex}"
               values.push model.get field
           sql = "INSERT INTO #{data.tablename}(#{fields}) VALUES (#{placeholders})"
+          log sql, values
           query = client.query sql, values
           query.on 'end', ->
             model.trigger 'sync'
+          query.on 'error', (err) ->
+            model.trigger 'error', err
       when 'read'
         Backbone.DB.getConnection (err, client) ->
           data = getTableData ModelClass, excludeId: false
@@ -72,20 +80,31 @@ define (require) ->
               if options.db_params.offset?
                 sql = "#{sql} OFFSET $#{++placeholderIndex}"
                 values.push options.db_params.offset
+            log sql, values
             query = client.query sql, values
             query.on 'row', (row) ->
-              collection.add row if collection?
+              collection.add row
             query.on 'end', ->
-              collection.trigger 'reset' if collection?
+              collection.trigger 'reset'
+            query.on 'error', (err) ->
+              collection.trigger 'error', err
           else
             throw new Error "Cannot fetch a model without its id!" unless (model.get 'id')?
             sql = "SELECT * FROM #{data.tablename} WHERE id=$#{++placeholderIndex} LIMIT 1"
             values.push model.get 'id'
+            log sql, values
             query = client.query sql, values
             query.on 'row', (row) ->
               model.set row
-            query.on 'end', ->
-              model.trigger 'sync'
+            query.on 'end', (result) ->
+              if result.rowCount == 0
+                model.trigger 'error', 'Not found'
+              else if result.rowCount == 1
+                model.trigger 'sync'
+              else
+                model.trigger 'error', 'Too many results'
+            query.on 'error', (err) ->
+              model.trigger 'error', err
       when 'update'
         Backbone.DB.getConnection (err, client) ->
           data = getTableData ModelClass, excludeId: true
@@ -96,15 +115,22 @@ define (require) ->
               values.push model.get field
           sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{++placeholderIndex}"
           values.push model.get 'id'
+          log sql, values
           query = client.query sql, values
           query.on 'end', ->
             model.trigger 'sync'
+          query.on 'error', (err) ->
+            model.trigger 'error', err
       when 'delete'
         data = getTableData ModelClass, excludeId: false
         Backbone.DB.getConnection (err, client) ->
-          sql = "DELETE FROM #{data.tablename} WHERE id=$1"
-          query = client.query sql, [model.get 'id']
+          sql = "DELETE FROM #{data.tablename} WHERE id=$#{++placeholderIndex}"
+          values.push model.get 'id'
+          log sql, values
+          query = client.query sql, values
           query.on 'end', ->
             model.trigger 'sync'
+          query.on 'error', (err) ->
+            model.trigger 'error', err
       else
         throw new Error "Unsupported method: #{method}"

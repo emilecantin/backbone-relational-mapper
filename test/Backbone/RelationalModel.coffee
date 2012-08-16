@@ -84,3 +84,12 @@ define (require) ->
             expect(model.get 'strField').to.equal 'TEST2'
             done()
 
+        it 'should not fetch a non-existent model', (done) ->
+          model = new @TestModel
+          model.set id: 3423
+          model.fetch()
+          model.on 'sync', ->
+            done 'Should not be called'
+          model.on 'error', (err) ->
+            expect(err).to.equal 'Not found'
+            done()
