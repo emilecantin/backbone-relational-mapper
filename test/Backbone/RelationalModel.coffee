@@ -40,19 +40,20 @@ define (require) ->
                 done()
 
         it 'should save an existing model', (done) ->
-          TestCollection = @TestCollection
           TestModel = @TestModel
-          collection = new TestCollection
-          collection.fetch()
-          collection.on 'reset', ->
-            model = collection.last()
+          model = new TestModel id: 2
+          model.fetch()
+          model.on 'sync', ->
+            model.off 'sync'
             model.set strField: 'NewValue'
             model.save()
+            model.on 'error', done
             model.on 'sync', ->
-              collection2 = new TestCollection
-              collection2.fetch()
-              collection2.on 'reset', ->
-                model2 = collection2.last()
+              expect(model.get 'strField').to.equal 'NewValue'
+              model2 = new TestModel id: 2
+              model2.fetch()
+              model2.on 'error', done
+              model2.on 'sync', ->
                 expect(model2.get 'strField').to.equal 'NewValue'
                 done()
 
@@ -78,10 +79,10 @@ define (require) ->
 
         it 'should fetch the model', (done) ->
           model = new @TestModel
-          model.set id: 2
+          model.set id: 3
           model.fetch()
           model.on 'sync', ->
-            expect(model.get 'strField').to.equal 'TEST2'
+            expect(model.get 'strField').to.equal 'TEST3'
             done()
 
         it 'should not fetch a non-existent model', (done) ->

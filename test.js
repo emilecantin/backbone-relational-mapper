@@ -40,19 +40,30 @@ function setupDB(cb){
       var query = client.query('CREATE TABLE test_models (' +
           '"id" serial NOT NULL,' +
           '"strField" character varying(255),' +
+          '"createdAt" timestamp without time zone NOT NULL,' +
+          '"updatedAt" timestamp without time zone NOT NULL,' +
           'CONSTRAINT "test_models_primary" PRIMARY KEY (id));');
       query.on('end', function(){
         cb2(null);
       });
     },
     function(cb2){
-      var query = client.query("INSERT INTO test_models(\"strField\") VALUES ('TEST');");
+      var query = client.query("INSERT INTO test_models(\"strField\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('TEST', '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
       query.on('end', function(){
         cb2(null);
       });
     },
     function(cb2){
-      var query = client.query("INSERT INTO test_models(\"strField\") VALUES ('TEST2');");
+      var query = client.query("INSERT INTO test_models(\"strField\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('TEST2', '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO test_models(\"strField\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('TEST3', '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
       query.on('end', function(){
         cb2(null);
       });
@@ -68,6 +79,8 @@ function setupDB(cb){
           '"id" serial NOT NULL, ' +
           '"strField" character varying(255), ' +
           '"intField" integer, ' +
+          '"createdAt" timestamp without time zone NOT NULL,' +
+          '"updatedAt" timestamp without time zone NOT NULL,' +
           'CONSTRAINT "test_model2s_primary" PRIMARY KEY (id));');
       query.on('end', function(){
         cb2(null);
