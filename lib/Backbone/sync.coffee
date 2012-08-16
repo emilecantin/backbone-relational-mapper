@@ -34,9 +34,14 @@ define (require) ->
           data = getTableData ModelClass,
             excludeId: true
             placeholderIndex: placeholderIndex
-          sql = "INSERT INTO #{data.tablename}(#{data.fields}) VALUES (#{'$'+(++placeholderIndex) for i in [0..data.fields.length-1]})"
+          fields = []
+          placeholders = []
           for field of ModelClass::fields
-            values.push model.get field unless field == 'id'
+            unless field == 'id'
+              fields.push "\"#{field}\""
+              placeholders.push "$#{++placeholderIndex}"
+              values.push model.get field
+          sql = "INSERT INTO #{data.tablename}(#{fields}) VALUES (#{placeholders})"
           query = client.query sql, values
           query.on 'end', ->
             model.trigger 'sync'
@@ -45,7 +50,7 @@ define (require) ->
           data = getTableData ModelClass, excludeId: false
           if collection?
             collection.reset(null, silent: true) unless options.add
-            sql = "SELECT #{data.fields} FROM #{data.tablename}"
+            sql = "SELECT * FROM #{data.tablename}"
             if options.db_params?
               # We have some options to add to the query
               if options.db_params.where?
@@ -59,6 +64,14 @@ define (require) ->
                   if whereConditions.length > 1
                     for i in [1..whereConditions.length-1]
                       sql = "#{sql} AND #{whereConditions[i]}"
+              if options.db_params.order_by?
+                sql = "#{sql} ORDER BY #{options.db_params.order_by}"
+              if options.db_params.limit?
+                sql = "#{sql} LIMIT $#{++placeholderIndex}"
+                values.push options.db_params.limit
+              if options.db_params.offset?
+                sql = "#{sql} OFFSET $#{++placeholderIndex}"
+                values.push options.db_params.offset
             query = client.query sql, values
             query.on 'row', (row) ->
               collection.add row if collection?
@@ -66,7 +79,7 @@ define (require) ->
               collection.trigger 'reset' if collection?
           else
             throw new Error "Cannot fetch a model without its id!" unless (model.get 'id')?
-            sql = "SELECT #{data.fields} FROM #{data.tablename} WHERE id=$#{++placeholderIndex} LIMIT 1"
+            sql = "SELECT * FROM #{data.tablename} WHERE id=$#{++placeholderIndex} LIMIT 1"
             values.push model.get 'id'
             query = client.query sql, values
             query.on 'row', (row) ->
@@ -77,10 +90,11 @@ define (require) ->
         Backbone.DB.getConnection (err, client) ->
           data = getTableData ModelClass, excludeId: true
           placeholders = []
-          placeholders.push "#{data.fields[i]}=$#{++placeholderIndex}" for i in [0..data.fields.length-1]
-          sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{++placeholderIndex}"
           for field of ModelClass::fields
-            values.push model.get field unless field == 'id'
+            unless field == 'id'
+              placeholders.push "\"#{field}\"=$#{++placeholderIndex}"
+              values.push model.get field
+          sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{++placeholderIndex}"
           values.push model.get 'id'
           query = client.query sql, values
           query.on 'end', ->

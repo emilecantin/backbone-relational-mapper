@@ -39,23 +39,26 @@ define (require) ->
       describe 'with search conditions:', ->
 
         before (done) ->
-          class @TestModel extends Backbone.RelationalModel
+          class @TestModel2 extends Backbone.RelationalModel
             fields:
               id: Backbone.Types.Primary
               strField: Backbone.Types.String
-          TestModel = @TestModel
+              intField: Backbone.Types.Integer
+          TestModel2 = @TestModel2
 
           class @TestCollection extends Backbone.Collection
-            model: TestModel
+            model: TestModel2
 
-          TestModel = @TestModel
+          TestModel2 = @TestModel2
           testText = @testText = "text#{(new Date).getTime()}"
           tasks = []
           models = []
           for i in [0..9]
             do (i) ->
-              models[i] = new TestModel
-              models[i].set strField: testText
+              models[i] = new TestModel2
+              models[i].set
+                strField: testText
+                intField: i % 2
               tasks.push (cb) -> models[i].save(); models[i].on 'sync', -> cb()
           async.parallel tasks, (err, result) ->
             done()
@@ -82,9 +85,80 @@ define (require) ->
               db_params:
                 where:
                   strField: testText
-                  id: 12
+                  intField: 0
             collection.on 'reset', ->
-              expect(collection.length).to.equal 1
-              expect(collection.first().get 'id').to.equal 12
+              expect(collection.length).to.equal 5
+              expect(collection.first().get 'intField').to.equal 0
               expect(collection.first().get 'strField').to.equal testText
               done()
+
+        describe 'ORDER BY', ->
+
+          it 'should return the models in ascending order', (done) ->
+            testText = @testText
+            collection = new @TestCollection
+            collection.fetch
+              db_params:
+                order_by: '"intField"'
+            collection.on 'reset', ->
+              expect(collection.length).to.equal 10
+              expect(collection.at(0).get 'intField').to.equal 0
+              expect(collection.at(0).get 'strField').to.equal testText
+              expect(collection.at(1).get 'intField').to.equal 0
+              expect(collection.at(1).get 'strField').to.equal testText
+              done()
+
+          it 'should return the models in descending order', (done) ->
+            testText = @testText
+            collection = new @TestCollection
+            collection.fetch
+              db_params:
+                order_by: '"intField" DESC'
+            collection.on 'reset', ->
+              expect(collection.length).to.equal 10
+              expect(collection.at(0).get 'intField').to.equal 1
+              expect(collection.at(0).get 'strField').to.equal testText
+              expect(collection.at(1).get 'intField').to.equal 1
+              expect(collection.at(1).get 'strField').to.equal testText
+              done()
+
+        describe 'LIMIT', ->
+
+          it 'should limit the size of the returned result set', (done) ->
+            testText = @testText
+            collection = new @TestCollection
+            collection.fetch
+              db_params:
+                where:
+                  strField: testText
+                  intField: 0
+                limit: 3
+                order_by: '"intField" DESC'
+            collection.on 'reset', ->
+              expect(collection.length).to.equal 3
+              expect(collection.at(0).get 'intField').to.equal 0
+              expect(collection.at(0).get 'strField').to.equal testText
+              expect(collection.at(1).get 'intField').to.equal 0
+              expect(collection.at(1).get 'strField').to.equal testText
+              done()
+
+        describe 'OFFSET', ->
+
+          it 'should limit the size of the returned result set', (done) ->
+            testText = @testText
+            collection = new @TestCollection
+            collection.fetch
+              db_params:
+                where:
+                  strField: testText
+                limit: 3
+                offset: 4
+                order_by: '"intField" ASC'
+            collection.on 'reset', ->
+              expect(collection.length).to.equal 3
+              expect(collection.at(0).get 'intField').to.equal 0
+              expect(collection.at(0).get 'strField').to.equal testText
+              expect(collection.at(1).get 'intField').to.equal 1
+              expect(collection.at(1).get 'strField').to.equal testText
+              done()
+

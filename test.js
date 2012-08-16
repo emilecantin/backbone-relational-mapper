@@ -37,7 +37,10 @@ function setupDB(cb){
       });
     },
     function(cb2){
-      var query = client.query('CREATE TABLE test_models ("id" serial NOT NULL, "strField" character varying(255), CONSTRAINT "primary" PRIMARY KEY (id));');
+      var query = client.query('CREATE TABLE test_models (' +
+          '"id" serial NOT NULL,' +
+          '"strField" character varying(255),' +
+          'CONSTRAINT "test_models_primary" PRIMARY KEY (id));');
       query.on('end', function(){
         cb2(null);
       });
@@ -50,6 +53,22 @@ function setupDB(cb){
     },
     function(cb2){
       var query = client.query("INSERT INTO test_models(\"strField\") VALUES ('TEST2');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query('DROP TABLE IF EXISTS test_model2s');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query('CREATE TABLE test_model2s (' +
+          '"id" serial NOT NULL, ' +
+          '"strField" character varying(255), ' +
+          '"intField" integer, ' +
+          'CONSTRAINT "test_model2s_primary" PRIMARY KEY (id));');
       query.on('end', function(){
         cb2(null);
       });
