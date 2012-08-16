@@ -6,19 +6,13 @@ define (require) ->
   getTableData = (ModelClass, options={}) ->
     tablename = inflection.tableize ModelClass.name
     fields = []
-    placeholders = []
-    placeholderIndex = 1
     for name, definition of ModelClass::fields
       type = definition.type || definition
       unless name == 'id' and options.excludeId
         fields.push "\"#{name}\""
-        placeholders.push "$#{placeholderIndex}"
-        placeholderIndex = placeholderIndex + 1
     return {
         tablename: tablename
         fields: fields
-        placeholders: placeholders
-        placeholderIndex: placeholderIndex
       }
 
   sync = (method, model, options={}) ->
@@ -30,15 +24,17 @@ define (require) ->
     else
       ModelClass = model.constructor
 
-    # Get useful data from the model's class
+    placeholderIndex = 0
+    values = []
 
     # Do the right thing according to the method
     switch method
       when 'create'
         Backbone.DB.getConnection (err, client) ->
-          data = getTableData ModelClass, excludeId: true
-          sql = "INSERT INTO #{data.tablename}(#{data.fields}) VALUES (#{data.placeholders})"
-          values = []
+          data = getTableData ModelClass,
+            excludeId: true
+            placeholderIndex: placeholderIndex
+          sql = "INSERT INTO #{data.tablename}(#{data.fields}) VALUES (#{'$'+(++placeholderIndex) for i in [0..data.fields.length-1]})"
           for field of ModelClass::fields
             values.push model.get field unless field == 'id'
           query = client.query sql, values
@@ -50,15 +46,29 @@ define (require) ->
           if collection?
             collection.reset(null, silent: true) unless options.add
             sql = "SELECT #{data.fields} FROM #{data.tablename}"
-            query = client.query sql
+            if options.db_params?
+              # We have some options to add to the query
+              if options.db_params.where?
+                # It's a where clause
+                whereConditions = []
+                for key, value of options.db_params.where
+                  whereConditions.push "\"#{key}\"=$#{++placeholderIndex}"
+                  values.push value
+                if whereConditions.length > 0
+                  sql = "#{sql} WHERE #{whereConditions[0]}"
+                  if whereConditions.length > 1
+                    for i in [1..whereConditions.length-1]
+                      sql = "#{sql} AND #{whereConditions[i]}"
+            query = client.query sql, values
             query.on 'row', (row) ->
               collection.add row if collection?
             query.on 'end', ->
               collection.trigger 'reset' if collection?
           else
             throw new Error "Cannot fetch a model without its id!" unless (model.get 'id')?
-            sql = "SELECT #{data.fields} FROM #{data.tablename} WHERE id=$1 LIMIT 1"
-            query = client.query sql, [model.get 'id']
+            sql = "SELECT #{data.fields} FROM #{data.tablename} WHERE id=$#{++placeholderIndex} LIMIT 1"
+            values.push model.get 'id'
+            query = client.query sql, values
             query.on 'row', (row) ->
               model.set row
             query.on 'end', ->
@@ -67,9 +77,8 @@ define (require) ->
         Backbone.DB.getConnection (err, client) ->
           data = getTableData ModelClass, excludeId: true
           placeholders = []
-          placeholders.push "#{data.fields[i]}=#{data.placeholders[i]}" for i in [0..data.fields.length-1]
-          sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{i+1}"
-          values = []
+          placeholders.push "#{data.fields[i]}=$#{++placeholderIndex}" for i in [0..data.fields.length-1]
+          sql = "UPDATE #{data.tablename} SET #{placeholders} WHERE id=$#{++placeholderIndex}"
           for field of ModelClass::fields
             values.push model.get field unless field == 'id'
           values.push model.get 'id'

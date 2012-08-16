@@ -37,7 +37,7 @@ function setupDB(cb){
       });
     },
     function(cb2){
-      var query = client.query('CREATE TABLE test_models (id serial NOT NULL, "strField" character varying(255), CONSTRAINT "primary" PRIMARY KEY (id));');
+      var query = client.query('CREATE TABLE test_models ("id" serial NOT NULL, "strField" character varying(255), CONSTRAINT "primary" PRIMARY KEY (id));');
       query.on('end', function(){
         cb2(null);
       });

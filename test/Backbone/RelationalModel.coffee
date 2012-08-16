@@ -84,30 +84,3 @@ define (require) ->
             expect(model.get 'strField').to.equal 'TEST2'
             done()
 
-#    describe 'search conditions:', ->
-#
-#      before ->
-#        class @TestModel extends Backbone.RelationalModel
-#          fields:
-#            id: Backbone.Types.Primary
-#            strField: Backbone.Types.String
-#        TestModel = @TestModel
-#
-#        class @TestCollection extends Backbone.Collection
-#          model: TestModel
-#
-#      it 'should return the right models', (done) ->
-#        collection = new @TestCollection
-#        testText = "text#{(new Date).getTime()}"
-#        for i in [0..9]
-#          model = new @TestModel
-#          model.save strField: testText
-#        # Wait for the last model to save before continuing
-#        model.on 'sync', ->
-#          collection.fetch
-#            db_params:
-#              where:
-#                strField: testText
-#          collection.on 'reset', ->
-#            expect(collection.length).to.equal 10
-#            done()
