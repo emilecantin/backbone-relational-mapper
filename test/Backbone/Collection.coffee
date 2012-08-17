@@ -162,3 +162,55 @@ define (require) ->
               expect(collection.at(1).get 'strField').to.equal testText
               done()
 
+      describe 'include fields', ->
+
+        before ->
+          class @TestModel3 extends Backbone.RelationalModel
+            fields:
+              id: Backbone.Types.Primary
+              intField: Backbone.Types.Integer
+              strField: Backbone.Types.String
+              strFieldExclude:
+                type: Backbone.Types.String
+                includeInJSON: false
+          TestModel3 = @TestModel3
+          class @TestCollection extends Backbone.Collection
+            model: TestModel3
+
+        it 'should not include values that are marked as "includeInJSON: false"', (done) ->
+          collection = new @TestCollection
+          collection.fetch()
+          collection.on 'error', done
+          collection.on 'reset', ->
+            model = collection.first()
+            expect(model.get 'intField').to.equal 3
+            expect(model.get 'strField').to.equal 'TEST3'
+            expect(model.get 'nonExistentField').to.equal undefined
+            expect(model.get 'strFieldExclude').to.equal undefined
+            done()
+
+        it 'should include values that are marked as "includeInJSON: true"', (done) ->
+          collection = new @TestCollection
+          collection.fetch()
+          collection.on 'error', done
+          collection.on 'reset', ->
+            model = collection.first()
+            expect(model.get 'intField').to.equal 3
+            expect(model.get 'strField').to.equal 'TEST3'
+            expect(model.get 'nonExistentField').to.equal undefined
+            expect(model.get 'strFieldExclude').to.equal undefined
+            done()
+
+        it 'should include values that are marked as "includeInJSON: false" if forced', (done) ->
+          collection = new @TestCollection
+          collection.fetch
+            db_params:
+              include_all: true
+          collection.on 'error', done
+          collection.on 'reset', ->
+            model = collection.first()
+            expect(model.get 'intField').to.equal 3
+            expect(model.get 'strField').to.equal 'TEST3'
+            expect(model.get 'nonExistentField').to.equal undefined
+            expect(model.get 'strFieldExclude').to.equal "INVISIBLE VALUE"
+            done()

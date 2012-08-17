@@ -109,3 +109,50 @@ define (require) ->
           model.on 'error', (err) ->
             expect(err).to.equal 'Not found'
             done()
+
+      describe 'include fields', ->
+
+        before ->
+          class @TestModel3 extends Backbone.RelationalModel
+            fields:
+              id: Backbone.Types.Primary
+              intField: Backbone.Types.Integer
+              strField: Backbone.Types.String
+              strFieldExclude:
+                type: Backbone.Types.String
+                includeInJSON: false
+
+        it 'should not include values that are marked as "includeInJSON: false"', (done) ->
+          model = new @TestModel3 id: 1
+          model.fetch()
+          model.on 'error', done
+          model.on 'sync', ->
+            expect(model.get 'intField').to.equal 3
+            expect(model.get 'strField').to.equal 'TEST3'
+            expect(model.get 'nonExistentField').to.equal undefined
+            expect(model.get 'strFieldExclude').to.equal undefined
+            done()
+
+        it 'should include values that are marked as "includeInJSON: true"', (done) ->
+          model = new @TestModel3 id: 1
+          model.fetch()
+          model.on 'error', done
+          model.on 'sync', ->
+            expect(model.get 'intField').to.equal 3
+            expect(model.get 'strField').to.equal 'TEST3'
+            expect(model.get 'nonExistentField').to.equal undefined
+            expect(model.get 'strFieldExclude').to.equal undefined
+            done()
+
+        it 'should include values that are marked as "includeInJSON: false" if forced', (done) ->
+          model = new @TestModel3 id: 1
+          model.fetch
+            db_params:
+              include_all: true
+          model.on 'error', done
+          model.on 'sync', ->
+            expect(model.get 'intField').to.equal 3
+            expect(model.get 'strField').to.equal 'TEST3'
+            expect(model.get 'nonExistentField').to.equal undefined
+            expect(model.get 'strFieldExclude').to.equal "INVISIBLE VALUE"
+            done()

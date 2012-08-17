@@ -86,6 +86,32 @@ function setupDB(cb){
         cb2(null);
       });
     },
+    function(cb2){
+      var query = client.query('DROP TABLE IF EXISTS test_model3s');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query('CREATE TABLE test_model3s (' +
+          '"id" serial NOT NULL, ' +
+          '"strField" character varying(255), ' +
+          '"intField" integer, ' +
+          '"strFieldExclude" character varying(255), ' +
+          '"createdAt" timestamp without time zone NOT NULL,' +
+          '"updatedAt" timestamp without time zone NOT NULL,' +
+          'CONSTRAINT "test_model3s_primary" PRIMARY KEY (id));');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO test_model3s(\"strField\", \"intField\", \"strFieldExclude\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('TEST3', 3, 'INVISIBLE VALUE', '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
   ],
   function(err, results){
     console.log("Setting up database... DONE");
