@@ -23,18 +23,20 @@ define (require) ->
 
       it 'should generate a "add" event for each row', (done) ->
         collection = new @TestCollection
+        collection.fetch()
+        collection.on 'error', done
         collection.on 'add', (model) ->
           expect(model.get "strField").to.be.a 'string'
         collection.on 'reset', ->
           done()
-        collection.fetch()
 
       it 'should generate a "reset" event', (done) ->
         collection = new @TestCollection
+        collection.fetch()
+        collection.on 'error', done
         collection.on 'reset', ->
           expect(collection.length).to.be.above 1
           done()
-        collection.fetch()
 
       describe 'with search conditions:', ->
 
@@ -59,9 +61,12 @@ define (require) ->
               models[i].set
                 strField: testText
                 intField: i % 2
-              tasks.push (cb) -> models[i].save(); models[i].on 'sync', -> cb()
+              tasks.push (cb) ->
+                models[i].save()
+                models[i].on 'sync', -> cb()
+                models[i].on 'error', (err) -> cb err
           async.parallel tasks, (err, result) ->
-            done()
+            done err
 
         describe 'simple where', ->
 
@@ -72,6 +77,7 @@ define (require) ->
               db_params:
                 where:
                   strField: testText
+            collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 10
               done()
@@ -86,11 +92,29 @@ define (require) ->
                 where:
                   strField: testText
                   intField: 0
+            collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 5
               expect(collection.first().get 'intField').to.equal 0
               expect(collection.first().get 'strField').to.equal testText
               done()
+
+        describe 'where in', ->
+          it 'should return the right models', (done) ->
+            testText = @testText
+            collection = new @TestCollection
+            collection.fetch
+              db_params:
+                where:
+                  id: [4, 5, 6]
+            collection.on 'error', done
+            collection.on 'reset', ->
+              expect(collection.length).to.equal 3
+              expect(collection.at(0).get 'id').to.equal 4
+              expect(collection.at(1).get 'id').to.equal 5
+              expect(collection.at(2).get 'id').to.equal 6
+              done()
+
 
         describe 'ORDER BY', ->
 
@@ -100,6 +124,7 @@ define (require) ->
             collection.fetch
               db_params:
                 order_by: '"intField"'
+            collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 10
               expect(collection.at(0).get 'intField').to.equal 0
@@ -114,6 +139,7 @@ define (require) ->
             collection.fetch
               db_params:
                 order_by: '"intField" DESC'
+            collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 10
               expect(collection.at(0).get 'intField').to.equal 1
@@ -134,6 +160,7 @@ define (require) ->
                   intField: 0
                 limit: 3
                 order_by: '"intField" DESC'
+            collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 3
               expect(collection.at(0).get 'intField').to.equal 0
@@ -154,6 +181,7 @@ define (require) ->
                 limit: 3
                 offset: 4
                 order_by: '"intField" ASC'
+            collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 3
               expect(collection.at(0).get 'intField').to.equal 0

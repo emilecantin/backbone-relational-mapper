@@ -13,11 +13,14 @@ define (require) ->
 
     Backbone.sync = require './Backbone/sync'
 
+    # Possible types are presented here for convenience,
+    # but you should use the strings in shared code
     Backbone.Types =
       String: 'STRING'
       Text: 'TEXT'
       Integer: 'INTEGER'
       Float: 'FLOAT'
+      Date: 'DATE'
       Primary: 'PRIMARY'
 
   return Backbone
