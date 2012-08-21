@@ -93,8 +93,51 @@ define (require) ->
             query.on 'row', (row) ->
               collection.add row
             query.on 'end', ->
-              collection.trigger 'reset'
-              collection.trigger 'sync'
+              # Manage relations
+              related_models_tasks = {}
+              if ModelClass::relations
+                for relation in ModelClass::relations
+                  if relation.includeInJSON
+                    fields = []
+                    if relation.includeInJSON instanceof Array
+                      fields.push "t2.\"#{name}\"" for name in relation.includeInJSON
+                    else if relation.includeInJSON instanceof String
+                      fields = "t2.#{relation.includeInJSON}"
+                    else
+                      fields.push "t2.\"#{name}\"" for name of relation.relatedModel::fields
+                    if relation.type == Backbone.HasOne
+                      sql = "SELECT t1.\"#{relation.key}Id\" AS \"__relationId\", #{fields} FROM #{data.tablename} AS t1" +
+                        " JOIN #{inflection.tableize relation.relatedModel.name} AS t2 ON(t2.id = t1.\"#{relation.key}Id\")"
+                      related_models_tasks[relation.key] = (cb) ->
+                        log sql
+                        query = client.query sql, (err, result) ->
+                          if err
+                            cb err
+                          else
+                            cb null, new relation.relatedModel result.rows[0]
+                        query.on 'row', (row) ->
+                          object = {}
+                          object[relation.key] = row
+                          collection.get(row['__relationId']).set object
+                    else if relation.type == Backbone.HasMany
+                      sql = "SELECT t1.\"id\" AS \"__relationId\", #{fields} FROM #{data.tablename} AS t1" +
+                        " JOIN #{inflection.tableize relation.relatedModel.name} AS t2 ON(t1.id = t2.\"#{relation.reverseRelation.key}Id\")"
+                      related_models_tasks[relation.key] = (cb) ->
+                        log sql
+                        query = client.query sql, (err, result) ->
+                          if err
+                            cb err
+                          else
+                            cb null, result.rows
+                        query.on 'row', (row) ->
+                          collection.get(row['__relationId']).get(relation.key).add row
+
+              async.parallel related_models_tasks, (err, result) ->
+                if err
+                  collection.trigger 'error', err
+                else
+                  collection.trigger 'reset'
+                  collection.trigger 'sync'
           else
             throw new Error "Unsupported method: #{method}"
 

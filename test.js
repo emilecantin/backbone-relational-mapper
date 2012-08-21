@@ -152,6 +152,107 @@ function setupDB(cb){
         cb2(null);
       });
     },
+    // -----------------------------------------------------------------------
+    // Employee and Company SETUP
+    function(cb2){
+      var query = client.query('DROP TABLE IF EXISTS employees');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query('DROP TABLE IF EXISTS companies');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query('CREATE TABLE companies (' +
+          '"id" serial PRIMARY KEY, ' +
+          '"name" character varying(255), ' +
+          '"founded" timestamp without time zone,' +
+          '"createdAt" timestamp without time zone NOT NULL,' +
+          '"updatedAt" timestamp without time zone NOT NULL);');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query('CREATE TABLE employees (' +
+          '"id" serial PRIMARY KEY, ' +
+          '"name" character varying(255), ' +
+          '"age" integer, ' +
+          '"companyId" integer references companies(id), ' +
+          '"createdAt" timestamp without time zone NOT NULL,' +
+          '"updatedAt" timestamp without time zone NOT NULL);');
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO companies(\"name\", \"founded\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Company1', '2011-01-01 12:12:12', '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO companies(\"name\", \"founded\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Company2', '2011-01-01 12:12:12', '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('John Doe', 32, 1, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Doug Doe', 32, 2, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Jane Doe', 32, 1, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Kyle Doe', 32, 1, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Gilbert Doe', 32, 2, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Play Doe', 32, 1, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    function(cb2){
+      var query = client.query("INSERT INTO employees(\"name\", \"age\", \"companyId\", \"createdAt\", \"updatedAt\")" +
+          "VALUES ('Paula Doe', 32, 2, '2011-01-01 12:12:12', '2011-01-01 12:12:12');");
+      query.on('end', function(){
+        cb2(null);
+      });
+    },
+    //-------------------------------------------------------------------------
   ],
   function(err, results){
     console.log("Setting up database... DONE");
