@@ -117,7 +117,7 @@ define (require) ->
             # Handle relations
             if ModelClass::relations
               for relation in ModelClass::relations
-                if model.get(relation.key) instanceof Backbone.RelationalModel
+                if relation.type == Backbone.HasOne
                   if model.get(relation.key).isNew()
                     throw new Error "You need to save #{relation.key} first!"
                   else
@@ -159,15 +159,41 @@ define (require) ->
                 else if result.rowCount == 1
                   model.set result.rows[0]
                   # Fetch related models
-                  related_models_tasks = []
+                  related_models_tasks = {}
                   if ModelClass::relations
                     for relation in ModelClass::relations
-                      if relation.type == Backbone.HasOne
-                        if relation.includeInJSON
-                          if relation.includeInJSON instanceof Array or relation.includeInJSON instanceof String
-                            fields = relation.includeInJSON
-                          sql = "SELECT #{data.fields} FROM #{data.tablename} WHERE id=$#{++data.placeholderIndex} LIMIT 1"
-                  model.trigger 'sync'
+                      if relation.includeInJSON
+                        fields = []
+                        if relation.includeInJSON instanceof Array or relation.includeInJSON instanceof String
+                          fields = relation.includeInJSON
+                        else
+                          fields.push name for name of relation.relatedModel::fields
+                        if relation.type == Backbone.HasOne
+                          sql = "SELECT #{fields} FROM #{inflection.tableize relation.relatedModel.name} WHERE id=$1 LIMIT 1"
+                          related_models_tasks[relation.key] = (cb) ->
+                            log sql, [model.get "#{relation.key}Id"]
+                            query = client.query sql, [model.get "#{relation.key}Id"], (err, result) ->
+                              if err
+                                cb err
+                              else
+                                cb null, new relation.relatedModel result.rows[0]
+                        else if relation.type == Backbone.HasMany
+                          sql = "SELECT #{fields} FROM #{inflection.tableize relation.relatedModel.name} WHERE \"#{relation.reverseRelation.key}Id\"=$1"
+                          related_models_tasks[relation.key] = (cb) ->
+                            log sql, [model.get 'id']
+                            query = client.query sql, [model.get 'id'], (err, result) ->
+                              if err
+                                cb err
+                              else
+                                cb null, result.rows
+
+
+                  async.parallel related_models_tasks, (err, result) ->
+                    if err
+                      model.trigger 'error', err
+                    else
+                      model.set result
+                      model.trigger 'sync'
                 else
                   model.trigger 'error', 'Too many results'
 
@@ -179,6 +205,17 @@ define (require) ->
 
             data.pairs.push "\"updatedAt\"=$#{++data.placeholderIndex}"
             data.values.push new Date
+
+            # Handle relations
+            if ModelClass::relations
+              for relation in ModelClass::relations
+                if relation.type == Backbone.HasOne
+                  if model.get(relation.key).isNew()
+                    throw new Error "You need to save #{relation.key} first!"
+                  else
+                    data.fields.push "\"#{relation.key}Id\""
+                    data.pairs.push "\"#{relation.key}Id\"=$#{++data.placeholderIndex}"
+                    data.values.push model.get(relation.key).get 'id'
 
             sql = "UPDATE #{data.tablename} SET #{data.pairs} WHERE id=$#{++data.placeholderIndex} RETURNING #{data.fields}"
             data.values.push model.get 'id'
