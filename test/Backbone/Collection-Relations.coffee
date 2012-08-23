@@ -42,9 +42,11 @@ define (require) ->
     it 'should fetch the related models (HasOne)', (done) ->
       Company = @Company
       employees = new @Employees
-      employees.fetch()
+      employees.fetch
+        db_params:
+          include_relations: true
       employees.on 'error', done
-      employees.on 'reset', ->
+      employees.on 'sync', ->
         expect(employees.length).to.equal 7
         expect(employees.first().get 'id').to.equal 1
         expect(employees.first().get 'company').to.be.an.instanceof Company
@@ -54,9 +56,11 @@ define (require) ->
     it 'should fetch the related models (HasMany)', (done) ->
       Employee = @Employee
       companies = new @Companies
-      companies.fetch()
+      companies.fetch
+        db_params:
+          include_relations: true
       companies.on 'error', done
-      companies.on 'reset', ->
+      companies.on 'sync', ->
         expect(companies.length).to.equal 2
         expect(companies.first().get 'id').to.equal 1
         expect(companies.first().get 'employees').to.be.an.instanceof Backbone.Collection
