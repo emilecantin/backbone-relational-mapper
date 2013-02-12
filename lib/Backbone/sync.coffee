@@ -53,6 +53,7 @@ define (require) ->
       if collection?
         switch method
           when 'read'
+            log 'Fetching collection:', ModelClass.name
             data = getTableData ModelClass, null,
               placeholderIndex: placeholderIndex
               include_all: options.db_params.include_all
@@ -206,7 +207,8 @@ define (require) ->
                 if result.rowCount == 0
                   model.trigger 'error', 'Not found'
                 else if result.rowCount == 1
-                  model.set result.rows[0]
+                  attributes = result.rows[0]
+                  model.set attributes
                   # Fetch related models
                   related_models_tasks = {}
                   if ModelClass::relations
@@ -221,8 +223,8 @@ define (require) ->
                           sql = "SELECT #{fields} FROM #{inflection.tableize relation.relatedModel.name} WHERE id=$1 LIMIT 1"
                           related_models_tasks[relation.key] = do (relation, sql) ->
                             (cb) ->
-                              log sql, [model.get "#{relation.key}Id"]
-                              query = client.query sql, [model.get "#{relation.key}Id"], (err, result) ->
+                              log sql, [attributes["#{relation.key}Id"]]
+                              query = client.query sql, [attributes["#{relation.key}Id"]], (err, result) ->
                                 if err
                                   cb err
                                 else

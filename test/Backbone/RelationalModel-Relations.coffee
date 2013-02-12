@@ -36,14 +36,12 @@ define (require) ->
 
     it 'should save the association', (done) ->
       Player = @Player
-      player = Player.findOrCreate
+      player = new Player
         name: 'Bob Gratton'
         age: 43
-      player.off()
-      team = @Team.findOrCreate
+      team = new @Team
         name: 'TestTeam'
         founded: new Date
-      team.off()
       team.save()
       team.on 'error', done
       team.on 'sync', ->
@@ -85,7 +83,7 @@ define (require) ->
     it 'should update the association', (done) ->
       Team = @Team
       Player = @Player
-      team = Team.findOrCreate
+      team = new Team
         name: 'TestTeam2'
         founded: new Date
       team.off()

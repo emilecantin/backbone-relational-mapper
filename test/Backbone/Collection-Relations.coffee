@@ -5,7 +5,7 @@ define (require) ->
   describe 'Backbone.Collection Relations', ->
 
     it 'should connect', (done) ->
-      #Backbone.DB.logger = (string) -> console.log string
+      Backbone.DB.logger = (string) -> console.log string
       Backbone.DB.connect pgConfig
       done()
 
