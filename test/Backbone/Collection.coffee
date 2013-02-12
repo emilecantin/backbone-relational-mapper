@@ -107,6 +107,7 @@ define (require) ->
               db_params:
                 where:
                   id: [4, 5, 6]
+                order_by: 'id'
             collection.on 'error', done
             collection.on 'reset', ->
               expect(collection.length).to.equal 3

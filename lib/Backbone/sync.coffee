@@ -120,7 +120,7 @@ define (require) ->
                                 cb null, null
                             query.on 'row', (row) ->
                               object = {}
-                              object[relation.key] = new relation.relatedModel row
+                              object[relation.key] = relation.relatedModel.findOrCreate row
                               collection.get(row['__relationId']).set object if collection.get(row['__relationId'])?
                       else if relation.type == Backbone.HasMany
                         sql = "SELECT t1.\"id\" AS \"__relationId\", #{fields} FROM #{data.tablename} AS t1" +
@@ -134,7 +134,7 @@ define (require) ->
                               else
                                 cb null, null
                             query.on 'row', (row) ->
-                              collection.get(row['__relationId']).get(relation.key).add (new relation.relatedModel row) if collection.get(row['__relationId'])?
+                              collection.get(row['__relationId']).get(relation.key).add (relation.relatedModel.findOrCreate row) if collection.get(row['__relationId'])?
 
                 async.parallel related_models_tasks, (err, result) ->
                   if err
@@ -226,7 +226,7 @@ define (require) ->
                                 if err
                                   cb err
                                 else
-                                  cb null, new relation.relatedModel result.rows[0]
+                                  cb null, relation.relatedModel.findOrCreate result.rows[0]
                         else if relation.type == Backbone.HasMany
                           sql = "SELECT #{fields} FROM #{inflection.tableize relation.relatedModel.name} WHERE \"#{relation.reverseRelation.key}Id\"=$1"
                           related_models_tasks[relation.key] = do (relation, sql) ->
@@ -261,7 +261,7 @@ define (require) ->
             if ModelClass::relations
               for relation in ModelClass::relations
                 if relation.type == Backbone.HasOne
-                  if model.get(relation.key)? and (relatedModel = new relation.relatedModel(model.get(relation.key))).isNew()
+                  if model.get(relation.key)? and (relatedModel = relation.relatedModel.findOrCreate(model.get(relation.key))).isNew()
                     throw new Error "You need to save #{relation.key} first!"
                   else
                     data.fields.push "\"#{relation.key}Id\""

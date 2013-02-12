@@ -47,7 +47,8 @@ define (require) ->
           model.on 'error', done
           model.on 'sync', ->
             expect(model.get 'id').to.not.equal undefined
-            model2 = new TestModel id: model.get 'id'
+            model2 = TestModel.findOrCreate id: model.get 'id'
+            model2.off()
             model2.fetch()
             model2.on 'error', done
             model2.on 'sync', ->
@@ -56,7 +57,8 @@ define (require) ->
 
         it 'should save an existing model', (done) ->
           TestModel = @TestModel
-          model = new TestModel id: 2
+          model = TestModel.findOrCreate id: 2
+          model.off()
           model.fetch()
           model.on 'sync', ->
             model.off 'sync'
@@ -65,7 +67,8 @@ define (require) ->
             model.on 'error', done
             model.on 'sync', ->
               expect(model.get 'strField').to.equal 'NewValue'
-              model2 = new TestModel id: 2
+              model2 = TestModel.findOrCreate id: 2
+              model2.off()
               model2.fetch()
               model2.on 'error', done
               model2.on 'sync', ->
@@ -123,7 +126,8 @@ define (require) ->
                 includeInJSON: false
 
         it 'should not include values that are marked as "includeInJSON: false"', (done) ->
-          model = new @TestModel3 id: 1
+          model = @TestModel3.findOrCreate id: 1
+          model.off()
           model.fetch()
           model.on 'error', done
           model.on 'sync', ->
@@ -134,7 +138,8 @@ define (require) ->
             done()
 
         it 'should include values that are marked as "includeInJSON: true"', (done) ->
-          model = new @TestModel3 id: 1
+          model = @TestModel3.findOrCreate id: 1
+          model.off()
           model.fetch()
           model.on 'error', done
           model.on 'sync', ->
@@ -145,7 +150,8 @@ define (require) ->
             done()
 
         it 'should include values that are marked as "includeInJSON: false" if forced', (done) ->
-          model = new @TestModel3 id: 1
+          model = @TestModel3.findOrCreate id: 1
+          model.off()
           model.fetch
             db_params:
               include_all: true

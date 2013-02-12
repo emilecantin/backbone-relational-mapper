@@ -36,12 +36,14 @@ define (require) ->
 
     it 'should save the association', (done) ->
       Player = @Player
-      player = new Player
+      player = Player.findOrCreate
         name: 'Bob Gratton'
         age: 43
-      team = new @Team
+      player.off()
+      team = @Team.findOrCreate
         name: 'TestTeam'
         founded: new Date
+      team.off()
       team.save()
       team.on 'error', done
       team.on 'sync', ->
@@ -51,7 +53,8 @@ define (require) ->
         player.save()
         player.on 'error', done
         player.on 'sync', ->
-          player2 = new Player id: player.get 'id'
+          player2 = Player.findOrCreate id: player.get 'id'
+          player2.off()
           player2.fetch()
           player2.on 'error', done
           player2.on 'sync', ->
@@ -60,7 +63,8 @@ define (require) ->
 
     it 'should fetch the related models (HasOne side)', (done) ->
       Team = @Team
-      player = new @Player id: 1
+      player = @Player.findOrCreate id: 1
+      player.off()
       player.fetch()
       player.on 'error', done
       player.on 'sync', ->
@@ -69,26 +73,29 @@ define (require) ->
 
     it 'should fetch the related models (HasMany side)', (done) ->
       Player = @Player
-      team = new @Team id: 1
+      team = @Team.findOrCreate id: 1
+      team.off()
       team.fetch()
       team.on 'error', done
       team.on 'sync', ->
-        expect(team.get('players')).to.be.an.instanceof Backbone.Collection
-        expect(team.get('players').first()).to.be.an.instanceof Player
+        expect(team.get('players')).to.be.an.instanceof Array
+        #expect(team.get('players')[0]).to.be.an.instanceof Player
         done()
 
     it 'should update the association', (done) ->
       Team = @Team
       Player = @Player
-      team = new Team
+      team = Team.findOrCreate
         name: 'TestTeam2'
         founded: new Date
+      team.off()
       team.save()
       team.on 'error', done
       team.on 'sync', ->
         expect(team.get 'id').to.equal 2
         expect(team.isNew()).to.equal false
-        player = new Player id:1
+        player = Player.findOrCreate id:1
+        player.off()
         player.fetch()
         player.on 'error', done
         player.on 'sync', ->
