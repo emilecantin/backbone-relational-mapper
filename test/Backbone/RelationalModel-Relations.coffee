@@ -78,8 +78,8 @@ define (require) ->
       team.fetch()
       team.on 'error', done
       team.on 'sync', ->
-        expect(team.get('players')).to.be.an.instanceof Array
-        #expect(team.get('players')[0]).to.be.an.instanceof Player
+        expect(team.get('players')).to.be.an.instanceof Backbone.Collection
+        expect(team.get('players').first()).to.be.an.instanceof Player
         done()
 
     it 'should update the association', (done) ->

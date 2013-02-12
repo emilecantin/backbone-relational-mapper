@@ -236,7 +236,9 @@ define (require) ->
                                 if err
                                   cb err
                                 else
-                                  cb null, result.rows
+                                  models = []
+                                  models.push(relation.relatedModel.findOrCreate row) for row in result.rows
+                                  cb null, new Backbone.Collection models
 
 
                   async.parallel related_models_tasks, (err, result) ->
